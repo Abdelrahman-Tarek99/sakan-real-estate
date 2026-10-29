@@ -1,0 +1,4 @@
+import type {Metadata} from 'next';import localFont from 'next/font/local';import {Providers} from '@/components/providers';import {Header,Footer} from '@/components/header';import './globals.css';import 'lenis/dist/lenis.css';import 'leaflet/dist/leaflet.css';
+const geist=localFont({src:'../public/fonts/geist-latin.woff2',variable:'--font-sans',display:'swap'});
+export const metadata:Metadata={title:{default:'Sakan | A place for your next chapter',template:'%s | Sakan'},description:'Discover your next home in Egypt. Explore apartments, villas and penthouses in Cairo, Maadi, Zamalek and Sheikh Zayed.'};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body className={geist.variable}><a href="#main" className="skip-link">Skip to content</a><Providers><Header/><main id="main">{children}</main><Footer/></Providers></body></html>;}

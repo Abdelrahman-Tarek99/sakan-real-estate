@@ -1,0 +1,18 @@
+'use client';
+import {createContext,useContext,useEffect,useState,useCallback,type ReactNode} from 'react';
+import {usePathname,useRouter} from 'next/navigation';
+import {browserClient,isConfigured} from '@/lib/supabase/client';
+import Lenis from 'lenis';
+import gsap from 'gsap';
+import {ScrollTrigger} from 'gsap/ScrollTrigger';
+type SavedContext={ids:string[];busy:string|null;toggle:(id:string)=>Promise<void>;ready:boolean;notice:string;dismiss:()=>void};
+const Saved=createContext<SavedContext>({ids:[],busy:null,toggle:async()=>{},ready:false,notice:'',dismiss:()=>{}});
+export const useSaved=()=>useContext(Saved);
+export function Providers({children}:{children:ReactNode}){
+ const [ids,setIds]=useState<string[]>([]),[busy,setBusy]=useState<string|null>(null),[ready,setReady]=useState(false),[notice,setNotice]=useState('');const router=useRouter();const pathname=usePathname();
+ useEffect(()=>{let active=true;async function load(){try{if(!isConfigured()){const value=JSON.parse(localStorage.getItem('sakan:favorites:v1')??'[]');if(active)setIds(Array.isArray(value)?value.filter((x)=>typeof x==='string'):[]);}else{const db=browserClient();const {data:{user}}=await db.auth.getUser();if(user){const {data,error}=await db.from('sakan_favorites').select('property_id');if(error)throw error;if(active)setIds((data??[]).map(x=>x.property_id));}else if(active)setIds([]);}}catch{if(active)setNotice('Saved homes could not be loaded. Refresh to try again.');}finally{if(active)setReady(true);}}void load();const subscription=isConfigured()?browserClient().auth.onAuthStateChange(()=>{void load();}):null;return()=>{active=false;subscription?.data.subscription.unsubscribe();};},[]);
+ const toggle=useCallback(async(id:string)=>{if(busy||!ready)return;setBusy(id);try{const exists=ids.includes(id);if(isConfigured()){const db=browserClient();const {data:{user},error:authError}=await db.auth.getUser();if(authError||!user){router.push(`/sign-in?next=${encodeURIComponent(pathname)}`);return;}const result=exists?await db.from('sakan_favorites').delete().eq('user_id',user.id).eq('property_id',id):await db.from('sakan_favorites').insert({user_id:user.id,property_id:id});if(result.error)throw result.error;}const next=exists?ids.filter(x=>x!==id):[...ids,id];if(!isConfigured())localStorage.setItem('sakan:favorites:v1',JSON.stringify(next));setIds(next);setNotice(exists?'Home removed from saved.':isConfigured()?'Home added to saved.':'Home saved on this device.');router.refresh();}catch{setNotice('Could not update saved homes. Please try again.');}finally{setBusy(null);}},[ids,busy,ready,pathname,router]);
+ useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer);},[notice]);
+ useEffect(()=>{if(!window.matchMedia('(pointer:fine) and (prefers-reduced-motion:no-preference)').matches)return;gsap.registerPlugin(ScrollTrigger);const lenis=new Lenis({autoRaf:false,anchors:true,duration:0.9,prevent:node=>Boolean(node.closest('[data-lenis-prevent]'))});const tick=(time:number)=>lenis.raf(time*1000);lenis.on('scroll',ScrollTrigger.update);gsap.ticker.add(tick);gsap.ticker.lagSmoothing(0);const observer=new MutationObserver(()=>{const modal=document.querySelector('dialog[open]');if(modal)lenis.stop();else lenis.start();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});return()=>{observer.disconnect();gsap.ticker.remove(tick);lenis.off('scroll',ScrollTrigger.update);lenis.destroy();};},[]);
+ return <Saved.Provider value={{ids,busy,toggle,ready,notice,dismiss:()=>setNotice('')}}>{children}{notice&&<div className="toast" role="status">{notice}<button onClick={()=>setNotice('')} aria-label="Dismiss notification">×</button></div>}</Saved.Provider>;
+}

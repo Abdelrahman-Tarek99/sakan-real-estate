@@ -1,0 +1,2 @@
+'use client';import {useState} from 'react';import {Share2} from 'lucide-react';
+export function ShareButton(){const [message,setMessage]=useState('Share');return <button className="button outline" onClick={async()=>{try{await navigator.clipboard.writeText(window.location.href);setMessage('Link copied');}catch{setMessage('Copy the URL above');}setTimeout(()=>setMessage('Share'),3000);}}><Share2 size={17}/>{message}</button>;}
