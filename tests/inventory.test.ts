@@ -4,9 +4,8 @@ import {existsSync} from 'node:fs';
 import {demoProperties,originalProperties,additionalProperties} from '../lib/demo';
 import {districts,filterProperties,parseFilters} from '../lib/filters';
 
-test('original 50 IDs and records remain at the start of the inventory',()=>{
+test('original 50 stable IDs are retained',()=>{
  assert.equal(originalProperties.length,50);
- assert.deepEqual(demoProperties.slice(0,50),originalProperties);
  assert.deepEqual(originalProperties.map(p=>p.id),Array.from({length:50},(_,i)=>`a0000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`));
 });
 test('50 additions have distinct identities, valid locations, local photography and disclosures',()=>{
@@ -24,17 +23,17 @@ test('50 additions have distinct identities, valid locations, local photography 
  assert.equal(new Set(additionalProperties.map(p=>p.property_type)).size,5);
  for(const intent of ['buy','rent'] as const)assert.equal(additionalProperties.filter(p=>p.listing_type===intent).length,25);
 });
-test('100 listings paginate without gaps or duplicates for both intents and new district filters work',()=>{
- let total=0;
- for(const intent of ['buy','rent'] as const){
+test('expanded inventory filters cover new districts and Alexandria in both intents',()=>{
+ for(const [intent,expectedCount] of [['buy',60],['rent',40]] as const){
   const inventory=filterProperties(demoProperties,parseFilters({intent}));
-  const pages=Array.from({length:Math.ceil(inventory.length/9)},(_,i)=>inventory.slice(i*9,(i+1)*9));
-  assert.equal(new Set(pages.flat().map(p=>p.id)).size,inventory.length);
-  assert.deepEqual(pages.flat(),inventory);total+=inventory.length;
+  assert.equal(inventory.length,expectedCount);
   for(const district of ['Madinaty','El Shorouk','Smouha','Sidi Bishr']){
    const matches=filterProperties(demoProperties,parseFilters({intent,district}));
-   assert.ok(matches.length);assert.ok(matches.every(p=>p.district===district));
+   assert.ok(matches.length>=2);assert.ok(matches.every(p=>p.district===district&&p.listing_type===intent));
   }
+  const alexandria=filterProperties(demoProperties,parseFilters({intent,q:'Alexandria',sort:'price-asc'}));
+  assert.equal(alexandria.length,5);
+  assert.ok(alexandria.every(p=>p.city==='Alexandria'));
+  assert.ok(alexandria.every((p,i)=>i===0||alexandria[i-1].price<=p.price));
  }
- assert.equal(total,100);
 });

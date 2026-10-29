@@ -51,3 +51,6 @@ All 100 listings are fictional and labeled as samples. The Unsplash photos are l
 
 ## Inventory expansion
 The original 50 IDs and records are retained. The next 50 IDs cover ten districts, including Madinaty, El Shorouk, Smouha and Sidi Bishr, across all five property types and both intents. Photography reuses the licensed, optimized local stock assets with illustrative disclosures. Repeated seed runs insert missing IDs only; they preserve existing property edits and saved favorites. The script intentionally refuses other Supabase projects, including the old shared project.
+
+## Browser verification
+After `npm ci`, run `npx playwright install chromium`, build and start the app with the dedicated Supabase public connection configured, then run `npm run test:browser`. Set `SAKAN_BASE_URL` to test another deployment. This checks all 100 unique homes across buy/rent pages, combined filters, new districts, map markers/popups/tiles, oversized page numbers, anonymous save redirects and mobile overflow. Real Google consent and authenticated favorite changes require a user session.
