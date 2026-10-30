@@ -1,1 +1,0 @@
-import Link from 'next/link';export default function NotFound(){return <div className="shell empty-state"><h1>This address isn’t on our map.</h1><p>The home may have moved. Let’s find another place you’ll love.</p><Link className="button" href="/properties">Explore homes</Link></div>;}

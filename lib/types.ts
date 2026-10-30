@@ -1,3 +1,0 @@
-export type PropertyType = 'apartment' | 'villa' | 'studio' | 'penthouse' | 'duplex';
-export type Property = { id:string; title:string; description:string; price:number; bedrooms:number; bathrooms:number; area_sqm:number; property_type:PropertyType; listing_type:'buy'|'rent'; address:string; city:string; district:string; latitude:number; longitude:number; images:string[]; features:string[]; is_featured:boolean; created_at:string };
-export type Filters = { q:string; district:string; type:string; intent:'buy'|'rent'; min:number; max:number; beds:number; area:number; sort:string; page:number; view:string };

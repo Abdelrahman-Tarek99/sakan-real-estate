@@ -1,2 +1,0 @@
-import {NextResponse,type NextRequest} from 'next/server';import {serverClient} from '@/lib/supabase/server';import {safeNext} from '@/lib/auth';
-export async function GET(request:NextRequest){const url=new URL(request.url),code=url.searchParams.get('code');if(code){const db=await serverClient();const {error}=await db.auth.exchangeCodeForSession(code);if(!error)return NextResponse.redirect(new URL(safeNext(url.searchParams.get('next')),url.origin));}return NextResponse.redirect(new URL('/sign-in?error=auth',url.origin));}

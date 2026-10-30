@@ -1,1 +1,0 @@
-export default function Loading(){return <div className="shell loading-page" role="status" aria-label="Loading homes"><div className="skeleton skeleton-title"/><div className="property-grid">{[0,1,2].map(n=><div key={n} className="skeleton skeleton-card"/>)}</div><span className="sr-only">Loading homes…</span></div>;}
